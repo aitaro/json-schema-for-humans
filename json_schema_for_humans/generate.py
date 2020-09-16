@@ -363,7 +363,6 @@ class SchemaNode:
     @property
     def title(self) -> Optional[str]:
         title_kw = self.get_keyword(KW_TITLE)
-        print(title_kw)
         if not title_kw:
             return None
         title = title_kw.literal
@@ -381,8 +380,6 @@ class SchemaNode:
         This is simply the property name unless it is under "patternProperties" and it has a title,
         in which case it is that title
         """
-        print(self.title)
-        print(self.is_pattern_property)
         if self.is_pattern_property:
             return self.title or self.parent_key
         if self.is_property and self.title:
