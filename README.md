@@ -2,6 +2,13 @@
 
 # JSON Schema for Humans
 
+## 開発のしかた
+```
+pip install -e .
+generate-schema-doc sample/schema.json
+```
+
+
 Quickly generate a beautiful HTML static page documenting a JSON schema
 
 [Documentation (with visual examples)](https://coveooss.github.io/json-schema-for-humans)
