@@ -2,10 +2,10 @@
 {# Display description #}
 {%- if description -%}
     {%- if description is description_short -%}
-        <span class="description">{{ description | markdown }}</span>
+        <span class="description">{{ description.replace('\n', '</br>') | markdown }}</span>
     {%- else -%}
         <div class="description collapse" id="collapseDescription_{{ schema.html_id }}">
-            {{ description | markdown }}
+            {{ description.replace('\n', '</br>') | markdown }}
         </div>
         <a class="collapse-description-link collapsed" data-toggle="collapse" href="#collapseDescription_{{ schema.html_id }}"
            aria-expanded="false" aria-controls="collapseDescription{{ schema.html_id }}"
