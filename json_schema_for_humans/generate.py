@@ -234,7 +234,8 @@ class SchemaNode:
     @property
     def path_to_property(self) -> str:
         """Human-readable representation of the path from the root of the schema to this node"""
-        path_without_properties = [p for p in self.path_to_element if p not in [KW_PROPERTIES, KW_PATTERN_PROPERTIES]]
+        path_without_properties = [p for p in self.path_to_element if p not in [
+            KW_PROPERTIES, KW_PATTERN_PROPERTIES]]
         return " -> ".join([p if isinstance(p, str) else f"Item {p}" for p in path_without_properties])
 
     @property
@@ -434,9 +435,11 @@ class SchemaNode:
                 if node_to_check.refers_to:
                     new_to_check.add(node_to_check.refers_to)
                 new_to_check = new_to_check.union(
-                    set(n for n in node_to_check.keywords.values() if isinstance(n, SchemaNode))
+                    set(n for n in node_to_check.keywords.values()
+                        if isinstance(n, SchemaNode))
                 )
-                new_to_check = new_to_check.union(set(node_to_check.array_items))
+                new_to_check = new_to_check.union(
+                    set(node_to_check.array_items))
             to_check = new_to_check
             iteration_count += 1
 
@@ -473,7 +476,8 @@ def build_intermediate_representation(
     def defaultdict_list() -> Dict[Any, List]:
         return defaultdict(list)
 
-    reference_users: Dict[str, Dict[str, List[SchemaNode]]] = defaultdict(defaultdict_list)
+    reference_users: Dict[str, Dict[str, List[SchemaNode]]
+                          ] = defaultdict(defaultdict_list)
     _loaded_schemas: Dict[str, Any]
     if loaded_schemas is None:
         _loaded_schemas = {}
@@ -494,7 +498,8 @@ def build_intermediate_representation(
 
     def _record_ref(schema_real_path: str, path_to_element: List[Union[str, int]], current_node: SchemaNode) -> None:
         """Record that the node is describing the schema at the provided path"""
-        resolved_references[schema_real_path]["/".join(str(e) for e in path_to_element)] = current_node
+        resolved_references[schema_real_path]["/".join(
+            str(e) for e in path_to_element)] = current_node
 
     def _resolve_ref(current_node: SchemaNode, schema: Union[Dict, List, int, str]) -> Optional[SchemaNode]:
         """Resolve the $ref keyword
@@ -526,7 +531,8 @@ def build_intermediate_representation(
             if uri_part.startswith("http"):
                 referenced_schema_path = uri_part
             else:
-                referenced_schema_path = os.path.realpath(os.path.join(os.path.dirname(current_node.file), uri_part))
+                referenced_schema_path = os.path.realpath(
+                    os.path.join(os.path.dirname(current_node.file), uri_part))
         else:
             referenced_schema_path = os.path.realpath(current_node.file)
 
@@ -548,7 +554,8 @@ def build_intermediate_representation(
 
             # Is someone else using the reference?
             reference_users_for_this_schema = reference_users[found_reference.file][anchor_part]
-            reference_users[referenced_schema_path][anchor_part].append(current_node)
+            reference_users[referenced_schema_path][anchor_part].append(
+                current_node)
             if reference_users_for_this_schema:
                 other_user = None
                 other_is_better = False
@@ -593,7 +600,8 @@ def build_intermediate_representation(
 
             return found_reference
         else:
-            reference_users[referenced_schema_path][anchor_part].append(current_node)
+            reference_users[referenced_schema_path][anchor_part].append(
+                current_node)
 
         # Not an existing reference, so it shall be built
         referenced_schema_path_to_element = anchor_part.split("/")
@@ -602,7 +610,8 @@ def build_intermediate_representation(
             current_node.html_id,
             referenced_schema_path,
             referenced_schema_path_to_element,
-            _load_schema(referenced_schema_path, referenced_schema_path_to_element),
+            _load_schema(referenced_schema_path,
+                         referenced_schema_path_to_element),
         )
 
     def _load_schema(schema_uri: str, path_to_element: List[Union[str, int]]) -> Union[Dict, List, int, str]:
@@ -617,7 +626,8 @@ def build_intermediate_representation(
         else:
             if schema_uri.startswith("http"):
                 if schema_uri.endswith(".yaml"):
-                    loaded_schema = yaml.safe_load(requests.get(schema_uri).text)
+                    loaded_schema = yaml.safe_load(
+                        requests.get(schema_uri).text)
                 else:
                     loaded_schema = requests.get(schema_uri).json()
             else:
@@ -695,14 +705,16 @@ def build_intermediate_representation(
                 # no need for a SchemaNode object
                 if not is_property and schema_key == "examples":
                     keywords[schema_key] = [
-                        json.dumps(example, indent=4, separators=(",", ": "), ensure_ascii=False)
+                        json.dumps(example, indent=4, separators=(
+                            ",", ": "), ensure_ascii=False)
                         for example in schema_value
                     ]
                     continue
 
                 # The default value will be printed as-is, no need for a SchemaNode object
                 if not is_property and schema_key == "default":
-                    keywords[schema_key] = json.dumps(schema_value, ensure_ascii=False)
+                    keywords[schema_key] = json.dumps(
+                        schema_value, ensure_ascii=False)
                     continue
 
                 # Add the property name (correctly escaped) to the ID
@@ -747,7 +759,8 @@ def build_intermediate_representation(
 
         return new_node
 
-    intermediate_representation = _build_node(0, "", schema_path, [], _load_schema(schema_path, []))
+    intermediate_representation = _build_node(
+        0, "", schema_path, [], _load_schema(schema_path, []))
 
     return intermediate_representation
 
@@ -780,7 +793,8 @@ def is_deprecated_look_in_description(schema_node: SchemaNode) -> bool:
 def get_required_properties(schema_node: SchemaNode) -> List[str]:
     required_properties = schema_node.keywords.get("required") or []
     if required_properties:
-        required_properties = [p.literal for p in required_properties.array_items]
+        required_properties = [
+            p.literal for p in required_properties.array_items]
 
     return required_properties
 
@@ -789,7 +803,8 @@ def get_undocumented_required_properties(schema_node: SchemaNode) -> List[str]:
     required_properties = get_required_properties(schema_node)
 
     documented_properties = schema_node.keywords.get(KW_PROPERTIES)
-    documented_properties = documented_properties.keywords.keys() if documented_properties else []
+    documented_properties = documented_properties.keywords.keys(
+    ) if documented_properties else []
 
     undocumented = []
     for property_name in required_properties:
@@ -892,7 +907,8 @@ def _get_description(schema_node: SchemaNode) -> str:
             break
         seen.add(current_node.html_id)
         referenced_schema = current_node.refers_to
-        referenced_description_node = referenced_schema.keywords.get(DESCRIPTION)
+        referenced_description_node = referenced_schema.keywords.get(
+            DESCRIPTION)
         if referenced_description_node:
             description = referenced_description_node.literal
         current_node = referenced_schema
@@ -917,7 +933,7 @@ def get_description_remove_default(schema_node: SchemaNode) -> str:
     if not match:
         return description
 
-    return description[match.span(1)[1] :].lstrip()
+    return description[match.span(1)[1]:].lstrip()
 
 
 def get_default(schema_node: SchemaNode) -> str:
@@ -1043,14 +1059,17 @@ def generate_from_schema(
         link_to_reused_ref=link_to_reused_ref,
     )
 
-    template_folder = os.path.join(os.path.dirname(__file__), TEMPLATE_FOLDER, config.template_name)
+    template_folder = os.path.join(os.path.dirname(
+        __file__), TEMPLATE_FOLDER, config.template_name)
     base_template_path = os.path.join(template_folder, TEMPLATE_FILE_NAME)
 
-    md = markdown2.Markdown(extras={"fenced-code-blocks": {"cssclass": "highlight jumbotron"}, "tables": None})
+    md = markdown2.Markdown(
+        extras={"fenced-code-blocks": {"cssclass": "highlight jumbotron"}, "tables": None})
     loader = FileSystemLoader(template_folder)
     env = jinja2.Environment(loader=loader)
     env.filters["markdown"] = (
-        lambda text: jinja2.Markup(md.convert(text)) if config.description_is_markdown else lambda t: t
+        lambda text: jinja2.Markup(md.convert(
+            text)) if config.description_is_markdown else lambda t: t
     )
     env.filters["python_to_json"] = python_to_json
     env.filters["get_default"] = get_default_look_in_description if config.default_from_description else get_default
@@ -1074,7 +1093,8 @@ def generate_from_schema(
         # Backward compatibility
         schema_file = os.path.sep.join(schema_file)
 
-    intermediate_schema = build_intermediate_representation(schema_file, config, loaded_schemas)
+    intermediate_schema = build_intermediate_representation(
+        schema_file, config, loaded_schemas)
 
     rendered = template.render(schema=intermediate_schema, config=config)
 
@@ -1171,7 +1191,8 @@ def copy_css_and_js_to_target(result_file_path: str, config: GenerationConfigura
         return
 
     target_directory = os.path.dirname(result_file_path)
-    source_directory = os.path.join(os.path.dirname(__file__), TEMPLATE_FOLDER, config.template_name)
+    source_directory = os.path.join(os.path.dirname(
+        __file__), TEMPLATE_FOLDER, config.template_name)
     if target_directory == source_directory:
         return
 
@@ -1180,9 +1201,11 @@ def copy_css_and_js_to_target(result_file_path: str, config: GenerationConfigura
         if not os.path.exists(source_file_path):
             continue
         try:
-            shutil.copy(source_file_path, os.path.join(target_directory, file_to_copy))
+            shutil.copy(source_file_path, os.path.join(
+                target_directory, file_to_copy))
         except shutil.SameFileError:
-            print(f"Not copying {file_to_copy} to {os.path.abspath(target_directory)}, file already exists")
+            print(
+                f"Not copying {file_to_copy} to {os.path.abspath(target_directory)}, file already exists")
 
 
 def _get_final_config(
@@ -1193,7 +1216,8 @@ def _get_final_config(
     copy_css: bool,
     copy_js: bool,
     link_to_reused_ref: bool,
-    config: Union[str, Path, TextIO, Dict[str, Any], GenerationConfiguration] = None,
+    config: Union[str, Path, TextIO, Dict[str, Any],
+                  GenerationConfiguration] = None,
     config_parameters: List[str] = None,
 ) -> GenerationConfiguration:
     if config:
@@ -1218,13 +1242,15 @@ def _get_final_config(
             logging.info(CONFIG_DEPRECATION_MESSAGE)
 
     if config_parameters:
-        final_config = _apply_config_cli_parameters(final_config, config_parameters)
+        final_config = _apply_config_cli_parameters(
+            final_config, config_parameters)
 
     return final_config
 
 
 def _load_config(
-    config_parameter: Optional[Union[str, Path, TextIO, Dict[str, Any], GenerationConfiguration]]
+    config_parameter: Optional[Union[str, Path,
+                                     TextIO, Dict[str, Any], GenerationConfiguration]]
 ) -> GenerationConfiguration:
     """Load the configuration from either the path (as str or Path) to a config file, the open config file object,
     The loaded config as a dict or the GenerateConfiguration object directly.
